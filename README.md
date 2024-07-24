@@ -59,12 +59,13 @@ When using the default table format, the output includes the following columns:
 ### Example Output
 
 ```plaintext
-Directory                Lines    LOC  Classes  Methods   M/C   LOC/M
+File                        Lines    LOC  Classes  Methods   M/C   LOC/M
 ----------------------------------------------------------------------
-src                      144     154       1        13     13      11
-src/test                 102     723       2         9      4      80
+src/main.py                  120     130       2        10     5      13
+src/utils.py                  80      90       1         5     5      18
+src/models.py                100     120       3        15     5      8
 ----------------------------------------------------------------------
-SUM:                     246     877       3        22      7      39
+SUM:                         300     340       6        30     5      11
 ```
 
 In this example:
