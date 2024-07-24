@@ -6,7 +6,7 @@ pycodestats is a tool to count lines of code, classes, and methods in a Python p
 
 - Counts lines of code (excluding comments and docstrings)
 - Counts number of classes and methods
-- Outputs results in table, JSON, YAML, or XML format
+- Outputs results in table, JSON, or XML format
 
 ## Installation
 
@@ -28,12 +28,6 @@ To output results in JSON format:
 
 ```bash
 pycodestats path/to/your/project --json
-```
-
-To output results in YAML format:
-
-```bash
-pycodestats path/to/your/project --yaml
 ```
 
 To output results in XML format:

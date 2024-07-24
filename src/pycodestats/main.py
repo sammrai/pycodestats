@@ -2,7 +2,6 @@ import os
 import argparse
 import ast
 import json
-import yaml
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 
@@ -88,8 +87,6 @@ def print_results(results, by_file, output_format):
         print(summary_row)
     elif output_format == "json":
         print(json.dumps(results, indent=4))
-    elif output_format == "yaml":
-        print(yaml.dump(results, sort_keys=False))
     elif output_format == "xml":
         root = ET.Element("results")
         for path, metrics in results.items():
@@ -145,8 +142,6 @@ def parse_arguments():
     output_group = parser.add_mutually_exclusive_group()
     output_group.add_argument("--json", action="store_const", const="json",
                               dest="output_format", help="Write the results as JSON.")
-    output_group.add_argument("--yaml", action="store_const", const="yaml",
-                              dest="output_format", help="Write the results as YAML.")
     output_group.add_argument("--xml", action="store_const", const="xml",
                               dest="output_format", help="Write the results as XML.")
 
