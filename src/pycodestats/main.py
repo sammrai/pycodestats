@@ -82,9 +82,10 @@ def print_results(results, by_file, output_format):
             print(row)
 
         print("-" * len(header_line))
-        summary_row = format_row(
-            'SUM:', calculate_summary(results), name_width)
-        print(summary_row)
+        if by_file:
+            summary_row = format_row(
+                'SUM:', calculate_summary(results), name_width)
+            print(summary_row)
     elif output_format == "json":
         print(json.dumps(results, indent=4))
     elif output_format == "xml":
