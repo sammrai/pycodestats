@@ -71,7 +71,7 @@ def print_results(results, by_file, output_format):
     if output_format == "table":
         headers = ['File' if by_file else 'Directory', 'Lines',
                    'LOC', 'Classes', 'Methods', 'M/C', 'LOC/M']
-        name_width = max(len(name) for name in results.keys()) + 2
+        name_width = max(max(len(name) for name in results.keys()), 9)
         header_line = f"{headers[0]:<{name_width}} " + \
             " ".join(f"{header:>{COLUMN_WIDTH}}" for header in headers[1:])
         print(header_line)
