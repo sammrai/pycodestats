@@ -1,6 +1,9 @@
 import os
 import argparse
 import ast
+import json
+import yaml
+import xml.etree.ElementTree as ET
 from collections import defaultdict
 
 COLUMN_WIDTH = 7
@@ -8,7 +11,11 @@ COLUMN_WIDTH = 7
 def count_lines_of_code(file_path):
     """Count the lines of code, classes, and methods in a Python file."""
     with open(file_path, 'r', encoding='utf-8') as file:
-        tree = ast.parse(file.read(), filename=file_path)
+        try:
+            tree = ast.parse(file.read(), filename=file_path)
+        except SyntaxError as e:
+            print(f"Syntax error in {file_path}: {e}")
+            return 0, 0, 0
     
     total_lines, classes, methods = 0, 0, 0
     for node in ast.walk(tree):
@@ -54,21 +61,36 @@ def aggregate_parent_directory_results(results):
             results[parent]['Methods'] += results[subdir]['Methods']
             parent = os.path.dirname(parent)
 
-def print_results(results, by_file):
-    """Print the results in a formatted table."""
-    headers = ['File' if by_file else 'Directory', 'Lines', 'LOC', 'Classes', 'Methods', 'M/C', 'LOC/M']
-    name_width = max(len(name) for name in results.keys()) + 2
-    header_line = f"{headers[0]:<{name_width}} " + " ".join(f"{header:>{COLUMN_WIDTH}}" for header in headers[1:])
-    print(header_line)
-    print("-" * len(header_line))
+def print_results(results, by_file, output_format):
+    """Print the results in a formatted table or write to a file."""
+    if output_format == "table":
+        headers = ['File' if by_file else 'Directory', 'Lines', 'LOC', 'Classes', 'Methods', 'M/C', 'LOC/M']
+        name_width = max(len(name) for name in results.keys()) + 2
+        header_line = f"{headers[0]:<{name_width}} " + " ".join(f"{header:>{COLUMN_WIDTH}}" for header in headers[1:])
+        print(header_line)
+        print("-" * len(header_line))
 
-    for path, result in results.items():
-        row = format_row(path, result, name_width)
-        print(row)
+        for path, result in results.items():
+            row = format_row(path, result, name_width)
+            print(row)
 
-    print("-" * len(header_line))
-    summary_row = format_row('SUM:', calculate_summary(results), name_width)
-    print(summary_row)
+        print("-" * len(header_line))
+        summary_row = format_row('SUM:', calculate_summary(results), name_width)
+        print(summary_row)
+    elif output_format == "json":
+        print(json.dumps(results, indent=4))
+    elif output_format == "yaml":
+        print(yaml.dump(results, sort_keys=False))
+    elif output_format == "xml":
+        root = ET.Element("results")
+        for path, metrics in results.items():
+            entry = ET.SubElement(root, "entry", name=path)
+            for key, value in metrics.items():
+                child = ET.SubElement(entry, key)
+                child.text = str(value)
+        tree = ET.ElementTree(root)
+        ET.indent(tree, space="\t", level=0)  # Pretty print the XML
+        print(ET.tostring(root, encoding="unicode"))
 
 def format_row(name, result, name_width):
     """Format a single row for the output table."""
@@ -97,17 +119,28 @@ def calculate_summary(results):
         'LOC/M': total_loc // total_methods if total_methods else 0
     }
 
-def main():
+def parse_arguments():
+    """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
         description="Count lines of code in a directory, excluding comments and docstrings.",
         epilog="This script scans a directory (recursively) for Python files and summarizes their code statistics."
     )
     parser.add_argument("directory", help="Directory to scan for Python files.")
     parser.add_argument("--by-file", action="store_true", help="Show results for each file instead of aggregating by directory.")
-    args = parser.parse_args()
+    
+    output_group = parser.add_mutually_exclusive_group()
+    output_group.add_argument("--json", action="store_const", const="json", dest="output_format", help="Write the results as JSON.")
+    output_group.add_argument("--yaml", action="store_const", const="yaml", dest="output_format", help="Write the results as YAML.")
+    output_group.add_argument("--xml", action="store_const", const="xml", dest="output_format", help="Write the results as XML.")
+    
+    parser.set_defaults(output_format="table")
+    
+    return parser.parse_args()
 
+def main():
+    args = parse_arguments()
     results = scan_directory(args.directory, args.by_file)
-    print_results(results, args.by_file)
+    print_results(results, args.by_file, args.output_format)
 
 if __name__ == "__main__":
     main()
