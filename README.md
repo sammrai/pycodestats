@@ -44,6 +44,40 @@ pycodestats src --by-file
 
 This will output the statistics for each Python file in the `src` directory.
 
+## Output Format
+
+When using the default table format, the output includes the following columns:
+
+- **Directory/File**: The name of the directory or file. If `--by-file` is used, this column lists each individual file. Otherwise, it lists each directory.
+- **Lines**: The total number of lines in the file or directory. This includes all lines, regardless of content.
+- **LOC**: The number of lines of code (LOC), excluding comments and docstrings.
+- **Classes**: The number of classes defined in the file or directory.
+- **Methods**: The number of methods defined in the file or directory.
+- **M/C**: The average number of methods per class. This is calculated as the number of methods divided by the number of classes. If there are no classes, this value is 0.
+- **LOC/M**: The average number of lines of code per method. This is calculated as the number of lines of code divided by the number of methods. If there are no methods, this value is 0.
+
+### Example Output
+
+```plaintext
+Directory                Lines    LOC  Classes  Methods   M/C   LOC/M
+----------------------------------------------------------------------
+src                      144     154       1        13     13      11
+src/test                 102     723       2         9      4      80
+----------------------------------------------------------------------
+SUM:                     246     877       3        22      7      39
+```
+
+In this example:
+
+- **Directory**: Lists directories or files.
+- **Lines**: Shows the total number of lines.
+- **LOC**: Shows the lines of code.
+- **Classes**: Shows the number of classes.
+- **Methods**: Shows the number of methods.
+- **M/C**: Shows the average number of methods per class.
+- **LOC/M**: Shows the average number of lines of code per method.
+
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
