@@ -8,6 +8,7 @@ from collections import defaultdict
 
 COLUMN_WIDTH = 7
 
+
 def count_lines_of_code(file_path):
     """Count the lines of code, classes, and methods in a Python file."""
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -16,22 +17,25 @@ def count_lines_of_code(file_path):
         except SyntaxError as e:
             print(f"Syntax error in {file_path}: {e}")
             return 0, 0, 0
-    
+
     total_lines, classes, methods = 0, 0, 0
     for node in ast.walk(tree):
         if isinstance(node, ast.ClassDef):
             classes += 1
-            methods += sum(1 for n in node.body if isinstance(n, ast.FunctionDef))
+            methods += sum(1 for n in node.body if isinstance(n,
+                           ast.FunctionDef))
         if isinstance(node, ast.FunctionDef):
             methods += 1
         if not isinstance(node, (ast.Expr, ast.If, ast.For, ast.While, ast.Try, ast.FunctionDef, ast.ClassDef)):
             total_lines += 1
-    
+
     return total_lines, classes, methods
+
 
 def scan_directory(directory, by_file):
     """Scan the directory and collect code metrics for each file or directory."""
-    results = defaultdict(lambda: {'Lines': 0, 'LOC': 0, 'Classes': 0, 'Methods': 0})
+    results = defaultdict(
+        lambda: {'Lines': 0, 'LOC': 0, 'Classes': 0, 'Methods': 0})
     for root, _, files in os.walk(directory):
         parent_dir = os.path.relpath(root, directory)
         for file in files:
@@ -50,6 +54,7 @@ def scan_directory(directory, by_file):
 
     return results
 
+
 def aggregate_parent_directory_results(results):
     """Aggregate results for parent directories."""
     for subdir in list(results.keys()):
@@ -61,12 +66,15 @@ def aggregate_parent_directory_results(results):
             results[parent]['Methods'] += results[subdir]['Methods']
             parent = os.path.dirname(parent)
 
+
 def print_results(results, by_file, output_format):
     """Print the results in a formatted table or write to a file."""
     if output_format == "table":
-        headers = ['File' if by_file else 'Directory', 'Lines', 'LOC', 'Classes', 'Methods', 'M/C', 'LOC/M']
+        headers = ['File' if by_file else 'Directory', 'Lines',
+                   'LOC', 'Classes', 'Methods', 'M/C', 'LOC/M']
         name_width = max(len(name) for name in results.keys()) + 2
-        header_line = f"{headers[0]:<{name_width}} " + " ".join(f"{header:>{COLUMN_WIDTH}}" for header in headers[1:])
+        header_line = f"{headers[0]:<{name_width}} " + \
+            " ".join(f"{header:>{COLUMN_WIDTH}}" for header in headers[1:])
         print(header_line)
         print("-" * len(header_line))
 
@@ -75,7 +83,8 @@ def print_results(results, by_file, output_format):
             print(row)
 
         print("-" * len(header_line))
-        summary_row = format_row('SUM:', calculate_summary(results), name_width)
+        summary_row = format_row(
+            'SUM:', calculate_summary(results), name_width)
         print(summary_row)
     elif output_format == "json":
         print(json.dumps(results, indent=4))
@@ -92,6 +101,7 @@ def print_results(results, by_file, output_format):
         ET.indent(tree, space="\t", level=0)  # Pretty print the XML
         print(ET.tostring(root, encoding="unicode"))
 
+
 def format_row(name, result, name_width):
     """Format a single row for the output table."""
     return (
@@ -103,6 +113,7 @@ def format_row(name, result, name_width):
         f"{result['Methods'] // result['Classes'] if result['Classes'] else 0:>{COLUMN_WIDTH}} "
         f"{result['LOC'] // result['Methods'] if result['Methods'] else 0:>{COLUMN_WIDTH}}"
     )
+
 
 def calculate_summary(results):
     """Calculate the summary metrics for all results."""
@@ -119,28 +130,36 @@ def calculate_summary(results):
         'LOC/M': total_loc // total_methods if total_methods else 0
     }
 
+
 def parse_arguments():
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
         description="Count lines of code in a directory, excluding comments and docstrings.",
         epilog="This script scans a directory (recursively) for Python files and summarizes their code statistics."
     )
-    parser.add_argument("directory", help="Directory to scan for Python files.")
-    parser.add_argument("--by-file", action="store_true", help="Show results for each file instead of aggregating by directory.")
-    
+    parser.add_argument(
+        "directory", help="Directory to scan for Python files.")
+    parser.add_argument("--by-file", action="store_true",
+                        help="Show results for each file instead of aggregating by directory.")
+
     output_group = parser.add_mutually_exclusive_group()
-    output_group.add_argument("--json", action="store_const", const="json", dest="output_format", help="Write the results as JSON.")
-    output_group.add_argument("--yaml", action="store_const", const="yaml", dest="output_format", help="Write the results as YAML.")
-    output_group.add_argument("--xml", action="store_const", const="xml", dest="output_format", help="Write the results as XML.")
-    
+    output_group.add_argument("--json", action="store_const", const="json",
+                              dest="output_format", help="Write the results as JSON.")
+    output_group.add_argument("--yaml", action="store_const", const="yaml",
+                              dest="output_format", help="Write the results as YAML.")
+    output_group.add_argument("--xml", action="store_const", const="xml",
+                              dest="output_format", help="Write the results as XML.")
+
     parser.set_defaults(output_format="table")
-    
+
     return parser.parse_args()
+
 
 def main():
     args = parse_arguments()
     results = scan_directory(args.directory, args.by_file)
     print_results(results, args.by_file, args.output_format)
+
 
 if __name__ == "__main__":
     main()
