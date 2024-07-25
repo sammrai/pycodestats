@@ -61,23 +61,12 @@ When using the default table format, the output includes the following columns:
 ```plaintext
 File                        Lines    LOC  Classes  Methods   M/C   LOC/M
 -------------------------------------------------------------------------
-src/main.py                  120     130       2        10     5      13
-src/utils.py                  80      90       1         5     5      18
-src/models.py                100     120       3        15     5       8
+src/main.py                  120     100       2        10     5      13
+src/utils.py                  80      50       1         5     5      18
+src/models.py                100      80       3        15     5       8
 -------------------------------------------------------------------------
-SUM:                         300     340       6        30     5      11
+SUM:                         300     230       6        30     5      11
 ```
-
-In this example:
-
-- **Directory**: Lists directories or files.
-- **Lines**: Shows the total number of lines.
-- **LOC**: Shows the lines of code.
-- **Classes**: Shows the number of classes.
-- **Methods**: Shows the number of methods.
-- **M/C**: Shows the average number of methods per class.
-- **LOC/M**: Shows the average number of lines of code per method.
-
 
 ## License
 
