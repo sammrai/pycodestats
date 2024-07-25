@@ -11,24 +11,25 @@ COLUMN_WIDTH = 7
 def count_lines_of_code(file_path):
     """Count the lines of code, classes, and methods in a Python file."""
     with open(file_path, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
         try:
-            tree = ast.parse(file.read(), filename=file_path)
+            tree = ast.parse("".join(lines), filename=file_path)
         except SyntaxError as e:
             print(f"Syntax error in {file_path}: {e}")
             return 0, 0, 0
 
-    total_lines, classes, methods = 0, 0, 0
+    total_lines, classes, methods = len(lines), 0, 0
     for node in ast.walk(tree):
         if isinstance(node, ast.ClassDef):
             classes += 1
-            methods += sum(1 for n in node.body if isinstance(n,
-                           ast.FunctionDef))
+            methods += sum(1 for n in node.body if isinstance(n, ast.FunctionDef))
         if isinstance(node, ast.FunctionDef):
             methods += 1
-        if not isinstance(node, (ast.Expr, ast.If, ast.For, ast.While, ast.Try, ast.FunctionDef, ast.ClassDef)):
-            total_lines += 1
 
-    return total_lines, classes, methods
+    # Exclude lines that are comments or empty
+    loc = sum(1 for line in lines if line.strip() and not line.strip().startswith('#'))
+    
+    return total_lines, loc, classes, methods
 
 
 def scan_directory(directory, by_file):
@@ -40,10 +41,9 @@ def scan_directory(directory, by_file):
         for file in files:
             if file.endswith('.py'):
                 file_path = os.path.join(root, file)
-                loc, classes, methods = count_lines_of_code(file_path)
-                lines = sum(1 for _ in open(file_path))
+                total_lines, loc, classes, methods = count_lines_of_code(file_path)
                 key = file_path if by_file else parent_dir
-                results[key]['Lines'] += lines
+                results[key]['Lines'] += total_lines
                 results[key]['LOC'] += loc
                 results[key]['Classes'] += classes
                 results[key]['Methods'] += methods
