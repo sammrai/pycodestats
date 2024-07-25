@@ -9,26 +9,36 @@ COLUMN_WIDTH = 7
 
 
 def count_lines_of_code(file_path):
-    """Count the lines of code, classes, and methods in a Python file."""
+    """Count the lines of code, classes, and methods in a Python file, excluding comments and docstrings."""
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
         try:
             tree = ast.parse("".join(lines), filename=file_path)
         except SyntaxError as e:
             print(f"Syntax error in {file_path}: {e}")
-            return 0, 0, 0
+            return 0, 0, 0, 0
 
     total_lines, classes, methods = len(lines), 0, 0
+    docstring_lines = set()  # Set to keep track of lines in docstrings
     for node in ast.walk(tree):
         if isinstance(node, ast.ClassDef):
             classes += 1
-            methods += sum(1 for n in node.body if isinstance(n, ast.FunctionDef))
+            methods += sum(1 for n in node.body if isinstance(n,
+                           ast.FunctionDef))
         if isinstance(node, ast.FunctionDef):
             methods += 1
+        # Track lines in docstrings
+        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+            if ast.get_docstring(node):
+                docstring_start = node.lineno - 1
+                docstring_end = docstring_start + \
+                    len(ast.get_docstring(node).splitlines())
+                docstring_lines.update(range(docstring_start, docstring_end))
 
-    # Exclude lines that are comments or empty
-    loc = sum(1 for line in lines if line.strip() and not line.strip().startswith('#'))
-    
+    # Exclude lines that are comments or empty or in docstrings
+    loc = sum(1 for i, line in enumerate(
+        lines) if i not in docstring_lines and line.strip() and not line.strip().startswith('#'))
+
     return total_lines, loc, classes, methods
 
 
@@ -41,7 +51,8 @@ def scan_directory(directory, by_file):
         for file in files:
             if file.endswith('.py'):
                 file_path = os.path.join(root, file)
-                total_lines, loc, classes, methods = count_lines_of_code(file_path)
+                total_lines, loc, classes, methods = count_lines_of_code(
+                    file_path)
                 key = file_path if by_file else parent_dir
                 results[key]['Lines'] += total_lines
                 results[key]['LOC'] += loc
